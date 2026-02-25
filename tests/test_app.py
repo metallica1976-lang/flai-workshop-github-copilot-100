@@ -165,6 +165,25 @@ class TestSignup:
         # Assert
         assert "detail" in response.json()
 
+    def test_signup_capacity_exceeded_returns_400(self, client: TestClient):
+        # Arrange — Chess Club has max_participants=12 and starts with 2 members;
+        #            fill the remaining 10 slots so it is at capacity.
+        activity_name = "Chess Club"
+        for i in range(10):
+            client.post(
+                f"/activities/{activity_name}/signup",
+                params={"email": f"student{i}@mergington.edu"},
+            )
+
+        # Act — attempt to sign up one more student beyond capacity
+        response = client.post(
+            f"/activities/{activity_name}/signup",
+            params={"email": "overflow@mergington.edu"},
+        )
+
+        # Assert
+        assert response.status_code == 400
+
 
 # ---------------------------------------------------------------------------
 # DELETE /activities/{activity_name}/unregister
